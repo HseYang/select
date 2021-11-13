@@ -13,7 +13,7 @@
 		.box {
 			width: 400px;
 			margin: 0 auto;
-			margin-top: 200px;
+			margin-top: 50px;
 		}
 	</style>
 	<body>
@@ -56,17 +56,61 @@
 			</div>
 			<button onclick="_getMultipleResult()">查看多选结果</button>
 		</div>
+		
+		<div class="box">
+			<div>
+				单选（有一个或多个的option的 'selected'属性为 'selected'，默认展示最后一个 'selected'）：
+				<select id="test_select2">
+					<option value="a">aaaaaaaa</option>
+					<option value="b">bbbbbbbb</option>
+					<option value="c">cc</option>
+					<option value="d" selected="selected">dddddddddddd</option>
+					<option value="e">eeeee</option>
+					<option value="f" selected="selected">fffffff</option>
+					<option value="g">ggggg</option>
+					<option value="h">hh</option>
+					<option value="i">iiiiiiii</option>
+					<option value="j">jjjjjjjjjj</option>
+					<option value="k">kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk</option>
+				</select>
+			</div>
+			<button onclick="_getResult2()">查看单选结果</button>
+		</div>
+		
+		<div class="box">
+			<div>
+				多选 (多个选中的option的 'selected'属性为 'selected'）：
+				<select id="test_select_multiple2" multiple>
+					<option value="a" >aaaaaaaa</option>
+					<option value="b">bbbbbbbb</option>
+					<option value="c">cc</option>
+					<option value="d" selected="selected">dddddddddddd</option>
+					<option value="e">eeeee</option>
+					<option value="f">fffffff</option>
+					<option value="g" selected="selected">ggggg</option>
+					<option value="h" selected="selected">hh</option>
+					<option value="i">iiiiiiii</option>
+					<option value="j">jjjjjjjjjj</option>
+					<option value="k">kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk</option>
+				</select>
+			</div>
+			<button onclick="_getMultipleResult2()">查看多选结果</button>
+		</div>
 
 
 		<script src="select.js" type="text/javascript" charset="utf-8"></script>
 
 		<script type="text/javascript">
 			var test_select = "",
+				test_select2 = "",
 				test_select_multiple = ""
+				test_select_multiple2 = ""
 
 			window.onload = function() {
 				test_select = new Selectize("#test_select")
+				test_select2 = new Selectize("#test_select2")
 				test_select_multiple = new Selectize("#test_select_multiple")
+				test_select_multiple2 = new Selectize("#test_select_multiple2")
 			}
 
 			function _getResult() {
@@ -76,6 +120,16 @@
 
 			function _getMultipleResult() {
 				var result = test_select_multiple.getSelect()
+				alert(result)
+			}
+			
+			function _getResult2() {
+				var result = test_select2.getSelect()
+				alert(result)
+			}
+			
+			function _getMultipleResult2() {
+				var result = test_select_multiple2.getSelect()
 				alert(result)
 			}
 		</script>

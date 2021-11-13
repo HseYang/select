@@ -87,21 +87,45 @@ Selectize.prototype = {
 			html = "",
 			startHtml = '<div class="select_value_view" id="' + this._selectViewId + '"><ul class="select_value_ul" id="' +
 			this._selectViewUlId + '">',
-			endHtml = '</ul></div>'
+			endHtml = '</ul></div>',
+			selectList = [], // options是selected的数组
+			liListHtml = "",
+			isSingleSelected = false // 兼容 单选时，多个options有selected的情况 只添加一次class，避免多次添加class
 
 		html += startHtml
-		for (var i = 0; i < children.length; i++) {
-			var item = children[i],
-				tmpl = '<li data-value="' + item.getAttribute("value") + '" onclick="' + this._selectViewLiClickFunName +
-				'(this)" data-index="' + i + '">' + item.innerHTML + '</li>'
 
-			html += tmpl
+		for (var i = children.length - 1; i >= 0; i--) {
+			var item = children[i],
+				isSelected = item.getAttribute("selected") == "selected",
+				dataValue = item.getAttribute("value"),
+				innerHTML = item.innerHTML,
+				tmpl = "",
+				selectedClassName = ""
+
+			// 选择过的增加选择过的操作状态
+			// 兼容 单选时，多个options有selected的情况 只添加一次class，避免多次添加class
+			if (isSelected && (this._isMultiple || !isSingleSelected)) {
+				selectedClassName = this._selectClickedClass
+				isSingleSelected = true
+
+				selectList.push({
+					innerHTML: innerHTML,
+					dataValue: dataValue,
+					index: i
+				})
+			}
+
+			tmpl = '<li class="' + selectedClassName + '" data-value="' + dataValue +
+				'" onclick="' + this._selectViewLiClickFunName +
+				'(this)" data-index="' + i + '">' + innerHTML + '</li>'
+
+			liListHtml = tmpl + liListHtml
 		}
 
-		html += endHtml
+		html += liListHtml + endHtml
 
 		this._eleDom.style.display = "none"
-		this.initSearchInput(html)
+		this.initSearchInput(html, selectList.reverse())
 		this.initSelectLiClick()
 	},
 	initSelectLiClick: function() {
@@ -156,22 +180,11 @@ Selectize.prototype = {
 
 		// 向搜索框里添加li
 		function add() {
-			var newLi = document.createElement("li")
-
-			newLi.setAttribute("data-value", dataValue)
-			newLi.setAttribute("data-index", dataIndex) // 排序
-
-			// 阻止冒泡事件
-			newLi.onclick = function(that) {
-				that.stopPropagation()
-			}
-
-			newLi.innerHTML = _self._closeSpan + innerHTML
-
-
 			if (!_self._isMultiple && searchUl.children.length >= 2) {
 				replace()
 			}
+
+			var newLi = _self.getSearchLiItemEle(dataValue, innerHTML, dataIndex)
 
 			searchUl.insertBefore(newLi, getLastPartner())
 		}
@@ -209,6 +222,21 @@ Selectize.prototype = {
 			return hasBig ? last : searchInput.parentNode
 		}
 	},
+	getSearchLiItemEle: function(dataValue, innerHTML, dataIndex) { // 搜索框里选中的item
+		var newLi = document.createElement("li")
+
+		newLi.setAttribute("data-value", dataValue)
+		newLi.setAttribute("data-index", dataIndex) // 排序
+
+		// 阻止冒泡事件
+		newLi.onclick = function(that) {
+			that.stopPropagation()
+		}
+
+		newLi.innerHTML = this._closeSpan + innerHTML
+
+		return newLi
+	},
 	getSelect: function() { // 获取选中的结果，以数组形似返回。
 		var _self = this
 
@@ -234,7 +262,7 @@ Selectize.prototype = {
 
 		return result
 	},
-	initSearchInput: function(selectHtml) { // 输入框
+	initSearchInput: function(selectHtml, newSelectList) { // 输入框
 		var view = '<div class="select_view" id="' + this._searchViewId + '" onclick="' + this._searchViewClickFunName +
 			'(event)">' +
 			'<ul class="select_search_ul" id="' + this._searchViewUlId + '">' +
@@ -346,8 +374,26 @@ Selectize.prototype = {
 					break;
 				}
 			}
-
 		}
+		
+		// 在搜索框里创建已经选中过的li
+		function createNewSearchLiItem() {
+			var searchUl = document.querySelector("#" + _self._searchViewUlId),
+				searchInput = document.querySelector("#" + _self._searchInputId)
+			
+			// newSelectList 是数组为：option 的'selected'属性为 'selected'的所有
+			for (var i = 0; i < newSelectList.length; i++) {
+				var item = newSelectList[i]
+				newLi = _self.getSearchLiItemEle(item.dataValue, item.innerHTML, item.index)
+
+				searchUl.insertBefore(newLi, searchInput.parentNode)
+			}
+		}
+
+		setTimeout(function() {
+			createNewSearchLiItem()
+		}, 0)
+
 	},
 	resetSearchInput: function() { // 点击后重置input
 		var searchInput = document.querySelector("#" + this._searchInputId),
