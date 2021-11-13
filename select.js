@@ -3,14 +3,27 @@
  * 
  * html:
  * 
- * <div> 
- *     <select id="testSelect" multiple>
- *         <option value="1">1</option>
- *     </select>
- * <div>
+   <div> 
+        <select id="testSelect" multiple>
+          <option value="a">a</option>
+			<option value="b">b</option>
+			<option value="c">c</option>
+			<option value="e" selected="selected">e</option>
+			
+			<!-- 如果 option 的 'selected' 属性为 'selected' 时，会默认选中状态。例如下面： -->
+			<!-- <option value="e" selected="selected">e</option>-->
+			
+			<!-- 当单选时，多个 option 的 'selected'属性为 'selected' 时，默认展示最后一个 -->
+        </select>
+    <div>
+	
  * 1、需要有 select option 的html组合 !!!!!!!!!!!!!!!!!!!!!!!
+ * 
  * 2、如果需要多选，则需要在select添加属性 'multiple', 默认是单选
+ * 
  * 3、需要把 select 放在一个单独的盒子里(例：div)，如果不放，默认会找其父级元素，然后会在里面添加自定义的元素
+ * 
+ * 4、如果需要   初始化后   把  选中过  的自动展示出来，需要设置select里的option的属性 'selected' 为 'selected' （当单选时，有多个selected状态，则默认展示最后一个）
  * 
  * js:
  * 

@@ -11,10 +11,16 @@ use javascript .
    <div>
 		<!-- 如果需要多选，则需要在select添加属性 'multiple', 默认是单选 -->
 		<!-- 下面是多选，如果是单选则去掉属性 'multiple' -->
+
 		<select id="test_select" multiple>
 			<option value="a">a</option>
 			<option value="b">b</option>
 			<option value="c">c</option>
+			
+			<!-- 如果 option 的 'selected' 属性为 'selected' 时，会默认选中状态。例如下面： -->
+			<!-- <option value="e" selected="selected">e</option>-->
+			
+			<!-- 当单选时，多个 option 的 'selected'属性为 'selected' 时，默认展示最后一个 -->
 		</select>
    <div>
    <button onclick="_getResult()">查看选择结果</button>
