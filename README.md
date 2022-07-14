@@ -27,11 +27,17 @@ use javascript .
    
    <script src="select.js" type="text/javascript" charset="utf-8"></script>
    <script type="text/javascript">
-		var test_select = ""
+		var test_select = "",
+			opt =  {
+				inoperable: false,  // 默认 false ；如果为 true 时，不可选择，也不能删除
+				deleteCallBack: deleteCallBack, // 删除成功后的回调
+				selectedCallBack: selectedCallBack // 选择成功后的回调
+			}
 			
 		window.onload = function() {
 			// 初始化，第一个参数可以是 class 或 id
-			test_select = new Selectize("#test_select")
+			//        第二个参数是 配置项，可看上面的 opt
+			test_select = new Selectize("#test_select", opt)
 		}
 		
 		function _getResult() {
@@ -40,11 +46,30 @@ use javascript .
 			alert(result)
 		}
 		
+		function deleteCallBack(deleteVal){
+			// 删除后，回调删除的数据
+			console.log("deleteCallBack deleteVal", deleteVal)
+		}
+		
+		function selectedCallBack(selectVal){
+			// 选择后，回调选择的数据
+			console.log("selectedCallBack selectVal", selectVal)
+		}
+		
 		// 使用详情可查看体验 index.html 文件
    </script>
    ```
    
 ## 更新记录
+### 2022.7.14：
+	- 1.2.0
+	- 选择框增加最大高度，防止内容太多，盒子无限大
+	- 增加 不可选择，也不能删除 的 inoperable 参数
+	- 增加 删除成功后的回调
+	- 增加 选择成功后的回调
+	- 增加 select的class属性会自动填充到 新创建的选择框上
+
+
 ### 2021.11.14：
 	- 1.1.0
 	- 优化个别UI展示问题

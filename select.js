@@ -27,36 +27,47 @@
  * 
  * js:
  * 
- * 创建：var selecter = new Selectize(id_or_class)  // id_or_class: class 或 id
+ * 创建：var selecter = new Selectize(id_or_class, opt) 
+ * 
+ * 参数介绍：
+ * id_or_class: class 或 id
+ * 
+ * opt : 是 object，可看下面
+ * { 
+		inoperable: false,  // 默认 false ；如果为 true 时，不可选择，也不能删除
+		deleteCallBack: deleteCallBack, // 删除成功后的回调
+		selectedCallBack: selectedCallBack // 选择成功后的回调
+   }
  * 
  * 获取选择的数据：selecter.getSelect()  // 已数组 [1,2,3,4...] 形式返回
  * 
+ * 
+ * 以上参数内容，具体详细描述可看 README.md 介绍
  * */
 
-function Selectize(ele) {
-	this.init(ele)
+function Selectize(ele, opt) {
+	this.init(ele, opt)
 }
 
 Selectize.prototype = {
-	init: function(ele) {
+	init: function(ele, opt = {}) {
 		if (!ele || ele.length == 0) {
 			console.error("select is not found")
 			return false
-		}
+		} 
 
 		this._ele = ele // class 或 id
 		this._timeName = new Date().getTime()
 		this._eleDom = document.querySelector(ele)
 		this._startName = this.getSelectName()
 		this._clickSave = ""
+		this._opt = opt
+		this._deleteCallBack = this._opt.deleteCallBack || function (){}
+		this._selectedCallBack = this._opt.selectedCallBack || function (){}
+		this._inoperable = this._opt.inoperable ? true : false
 
-		if (!this._ele || this._ele.length == 0) {
-			console.error("select is not found")
-			return false
-		}
-
-		if (!this._eleDom || this._eleDom.length == 0) {
-			console.error("select is not found")
+		if (!this._ele || !this._eleDom) {
+			console.error("select is not found !")
 			return false
 		}
 
@@ -84,7 +95,7 @@ Selectize.prototype = {
 
 		// 删除按钮
 		this._closeSpanClickFunName = this._startName + "_" + this._timeName + '_close_view_fun'
-		this._closeSpan = '<span onclick="' + this._closeSpanClickFunName + '(this, event)">× </span>'
+		this._closeSpan = '<span class="' + (this._inoperable ? "_hide" : "") + '" onclick="' + this._closeSpanClickFunName + '(this, event)"> × </span>'
 
 		this._selectClickedClass = "select_value_selected"
 
@@ -94,6 +105,10 @@ Selectize.prototype = {
 		this.initStyle()
 		this.initSelect()
 		this.initCustomClassList()
+	},
+	getParentClass: function(){
+		var classList = this._eleDom.getAttribute("class")
+		return classList || ""
 	},
 	initSelect: function() { // 获取select里的option，动态创建 ul li
 		var children = this._eleDom.children,
@@ -176,7 +191,10 @@ Selectize.prototype = {
 		}
 
 		_self.resetSearchInput()
-
+		
+		// 点击的回调
+		_self._selectedCallBack && _self._selectedCallBack(dataValue)
+		
 		// 移除搜索框里已有的li
 		function remove() {
 			for (var i = 0; i < children.length; i++) {
@@ -276,10 +294,11 @@ Selectize.prototype = {
 		return result
 	},
 	initSearchInput: function(selectHtml, newSelectList) { // 输入框
-		var view = '<div class="select_view" id="' + this._searchViewId + '" onclick="' + this._searchViewClickFunName +
+		var parentClassList = this.getParentClass(),
+			view = '<div class="select_view ' + parentClassList + '" id="' + this._searchViewId + '" onclick="' + this._searchViewClickFunName +
 			'(event)">' +
 			'<ul class="select_search_ul" id="' + this._searchViewUlId + '">' +
-			'<li class="select_search_li_input"><input type="text" id="' + this._searchInputId +
+			'<li class="select_search_li_input' + (this._inoperable ? " _hide" : "") + '"><input type="text" id="' + this._searchInputId +
 			'" class="select_search_input" oninput="' + this._searchInputChangeFunName + '(this)"/></li></ul></div>'
 
 		this._eleDom.parentNode.innerHTML += (view + selectHtml)
@@ -293,31 +312,15 @@ Selectize.prototype = {
 			var selectView = document.querySelector("#" + _self._selectViewId), // select view
 				isShow = selectView.style.display == "block",
 				searchInput = document.querySelector("#" + _self._searchInputId) // input
+			
+			if (_self._inoperable){
+				return false
+			}
 
 			_self.clickSaveEvent()
 			selectView.style.display = "block"
 			searchInput.focus()
 		}
-
-		// 监听页面的其他点击事件，不符合预期的会关闭value list 窗口
-		document.addEventListener("click", function() {
-			setTimeout(start, 100)
-
-			function start() {
-				if (!_self._clickSave) {
-					var selectView = document.querySelector("#" + _self._selectViewId),
-						searchInput = document.querySelector("#" + _self._searchInputId)
-
-					// 清空输入框内容
-					searchInput.value = ""
-
-					// 隐藏value list 窗口
-					if (selectView.style.display != "none") {
-						selectView.style.display = "none"
-					}
-				}
-			}
-		})
 
 		// 初始化搜索框输入内容改变
 		window[this._searchInputChangeFunName] = function(ele) {
@@ -326,6 +329,10 @@ Selectize.prototype = {
 				searchViewUl = document.querySelector("#" + _self._selectViewUlId), // ul
 				valueList = searchViewUl.children // ul下的li
 
+			if (_self._inoperable){
+				return false;
+			}
+			
 			if (!searchValue && !lastValue) {
 				console.warn("search value is empty")
 				return false;
@@ -387,6 +394,9 @@ Selectize.prototype = {
 					break;
 				}
 			}
+			
+			// 删除的回调
+			_self._deleteCallBack && _self._deleteCallBack(dataValue)
 		}
 		
 		// 在搜索框里创建已经选中过的li
@@ -401,6 +411,33 @@ Selectize.prototype = {
 
 				searchUl.insertBefore(newLi, searchInput.parentNode)
 			}
+		}
+		
+		function addEventListener(){
+			// 监听页面的其他点击事件，不符合预期的会关闭value list 窗口
+			document.addEventListener("click", function() {
+				setTimeout(start, 100)
+			
+				function start() {
+					if (!_self._clickSave) {
+						var selectView = document.querySelector("#" + _self._selectViewId),
+							searchInput = document.querySelector("#" + _self._searchInputId)
+			
+						// 清空输入框内容
+						searchInput.value = ""
+			
+						// 隐藏value list 窗口
+						if (selectView.style.display != "none") {
+							selectView.style.display = "none"
+						}
+					}
+				}
+			})
+			
+		}
+		
+		if (!_self._inoperable){
+			addEventListener()
 		}
 
 		setTimeout(function() {
@@ -424,7 +461,7 @@ Selectize.prototype = {
 	},
 	initStyle: function() { // 自定义style
 		var styleText =
-			'.select_view{width:100%;height:auto;overflow:hidden;border:1px solid black}.select_search_ul{width:100%;height:auto;list-style:none;padding:0 5px;box-sizing:border-box;}.select_search_ul li{float:left;border-color:#367fa9;padding:0 5px;margin:5px 5px;background-color:#e4e4e4;border:1px solid #aaa;border-radius:4px;color:#333;font-size:14px;box-sizing:border-box}.select_search_ul li span{font-size:10px;height:100%;padding:0 5px;color:#999;cursor:pointer;display:inline-block;font-weight:bold}.select_search_ul li span:hover{color:black}.select_search_li_input{background-color:transparent!important;width:10px;border-color:transparent!important;width:50px}.select_search_li_input::after{clear:right}.select_search_input{width:25px;outline:0;border:0;background-color:transparent}.select_value_view{display:none;width:100%;position:relative}.select_value_ul{padding-left:0;list-style:none;width:100%;height:200px;background-color:white;border:1px solid #aaa;box-sizing:border-box;overflow-y:auto;position:absolute;top:0;left:0;z-index:99}.select_value_ul li{padding:6px 12px;cursor:pointer;font-size:14px}.select_value_ul li:hover{background-color:#5897fb;border-color:#367fa9;color:white}.select_value_selected{background-color:#ddd;color:#444}.select_search_hide{display:none}'
+			'._hide{display:none!important;}.select_view{width:100%;height:auto;max-height:300px;overflow:auto;border:1px solid black}.select_search_ul{width:100%;height:auto;list-style:none;padding:0 5px;box-sizing:border-box;}.select_search_ul li{float:left;border-color:#367fa9;padding:5px;margin:5px 5px;background-color:#e4e4e4;border:1px solid #aaa;border-radius:4px;color:#333;font-size:14px;box-sizing:border-box}.select_search_ul li span{font-size:10px;height:100%;padding:0 5px;color:#999;cursor:pointer;display:inline-block;font-weight:bold}.select_search_ul li span:hover{color:black}.select_search_li_input{background-color:transparent!important;width:10px;border-color:transparent!important;width:50px}.select_search_li_input::after{clear:right}.select_search_input{width:25px;outline:0;border:0;background-color:transparent}.select_value_view{display:none;width:100%;position:relative}.select_value_ul{padding-left:0;list-style:none;width:100%;height:300px;background-color:white;border:1px solid #aaa;box-sizing:border-box;overflow-y:auto;position:absolute;top:0;left:0;z-index:99}.select_value_ul li{padding:6px 12px;cursor:pointer;font-size:14px}.select_value_ul li:hover{background-color:#5897fb;border-color:#367fa9;color:white}.select_value_selected{background-color:#ddd;color:#444}.select_search_hide{display:none}'
 		var head = document.getElementsByTagName("head")[0],
 			style = document.createElement("style");
 

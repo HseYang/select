@@ -11,7 +11,7 @@
 		}
 
 		.box {
-			width: 400px;
+			width: 500px;
 			margin: 0 auto;
 			margin-top: 50px;
 		}
@@ -96,6 +96,27 @@
 			</div>
 			<button onclick="_getMultipleResult2()">查看多选结果</button>
 		</div>
+		
+		<div class="box">
+			<div>
+				当参数 inoperable = true 时，默认不可选择，也不能删除
+				<!-- 多选 (多个选中的option的 'selected'属性为 'selected'）： -->
+				<select id="test_select_multiple3_inoperable" multiple>
+					<option value="a" >aaaaaaaa</option>
+					<option value="b">bbbbbbbb</option>
+					<option value="c">cc</option>
+					<option value="d">dddddddddddd</option>
+					<option value="e" selected="selected">eeeee</option>
+					<option value="f" selected="selected">fffffff</option>
+					<option value="g">ggggg</option>
+					<option value="h" selected="selected">hh</option>
+					<option value="i">iiiiiiii</option>
+					<option value="j">jjjjjjjjjj</option>
+					<option value="k">kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk</option>
+				</select>
+			</div>
+			<button onclick="_getMultipleResult3()">查看多选结果</button>
+		</div>
 
 
 		<script src="select.js" type="text/javascript" charset="utf-8"></script>
@@ -103,14 +124,20 @@
 		<script type="text/javascript">
 			var test_select = "",
 				test_select2 = "",
-				test_select_multiple = ""
-				test_select_multiple2 = ""
+				test_select_multiple = "",
+				test_select_multiple2 = "",
+				test_select_multiple3_inoperable = "",
+				opt =  {
+					deleteCallBack: deleteCallBack,
+					selectedCallBack: selectedCallBack
+				}
 
 			window.onload = function() {
-				test_select = new Selectize("#test_select")
-				test_select2 = new Selectize("#test_select2")
-				test_select_multiple = new Selectize("#test_select_multiple")
-				test_select_multiple2 = new Selectize("#test_select_multiple2")
+				test_select = new Selectize("#test_select", opt)
+				test_select2 = new Selectize("#test_select2", opt)
+				test_select_multiple = new Selectize("#test_select_multiple", opt)
+				test_select_multiple2 = new Selectize("#test_select_multiple2", opt)
+				test_select_multiple3_inoperable = new Selectize("#test_select_multiple3_inoperable", {'inoperable': true})
 			}
 
 			function _getResult() {
@@ -131,6 +158,21 @@
 			function _getMultipleResult2() {
 				var result = test_select_multiple2.getSelect()
 				alert(result)
+			}
+			
+			function _getMultipleResult3() {
+				var result = test_select_multiple3_inoperable.getSelect()
+				alert(result)
+			}
+			
+			function deleteCallBack(deleteVal){
+				console.log("deleteCallBack deleteVal", deleteVal)
+				// alert("已删除：" + deleteVal)
+			}
+			
+			function selectedCallBack(selectVal){
+				console.log("selectedCallBack selectVal", selectVal)
+				// alert("已选择：" + selectVal)
 			}
 		</script>
 
